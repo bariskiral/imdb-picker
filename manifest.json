@@ -28,6 +28,7 @@
       "matches": [
         "https://www.imdb.com/user/*/watchlist*",
         "https://www.imdb.com/user/*/ratings*",
+        "https://www.imdb.com/watchlist*",
         "https://www.imdb.com/list/*"
       ]
     }

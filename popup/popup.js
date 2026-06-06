@@ -8,6 +8,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const clickText = document.querySelector(".clickText");
     const emptyContentText = document.querySelector(".emptyContent");
 
+    const hasLoadingState = Object.prototype.hasOwnProperty.call(
+      message,
+      "isLoading"
+    );
+
     // The content has been received and set to storage.
 
     if (message.content) {
@@ -19,35 +24,59 @@ document.addEventListener("DOMContentLoaded", function () {
     // There is no content.
 
     if (message.emptyContent) {
-      document.querySelector(".contentContainer").setAttribute("hidden", "");
-      emptyContentText.removeAttribute("hidden");
+      emptyContentVisuals();
+      chrome.storage.sync.remove("content");
+      return;
     }
 
     // The content is loading.
 
-    if (message.isLoading) {
-      document.querySelector(".selectDiv").classList.add("hidden");
-      loadingAnim.classList.remove("hidden");
-      document.getElementById("contentImage").querySelector("img").src =
-        "../media/gifs/loading_img.gif";
-      clickText.textContent = "Loading...";
-      clickText.classList.remove("clickTextAnim1");
-      clickText.classList.add("clickTextAnim2");
-    }
-    // The content is loaded and button states set to storage.
-    else {
-      loadedBtnVisuals();
-      loadingAnim.classList.add("hidden");
-      chrome.storage.sync.set({ buttonStates: message.isLoading });
+    if (hasLoadingState) {
+      if (message.isLoading) {
+        loadingBtnVisuals();
+      }
+      // The content is loaded and button states set to storage.
+      else {
+        loadedBtnVisuals();
+        loadingAnim.classList.add("hidden");
+        chrome.storage.sync.set({ buttonStates: message.isLoading });
+      }
     }
   });
 
   // Setting up UI elements.
 
+  const loadingBtnVisuals = () => {
+    const loadingAnim = document.querySelector(".loadingAnimation");
+    const clickText = document.querySelector(".clickText");
+
+    document.getElementById("contentLoadBtn").textContent = "Loading...";
+    document.getElementById("contentLoadBtn").setAttribute("disabled", "");
+    document.getElementById("randomPickerBtn").setAttribute("disabled", "");
+    document.querySelector(".selectDiv").classList.add("hidden");
+    document.querySelector(".emptyContent").setAttribute("hidden", "");
+    loadingAnim.classList.remove("hidden");
+    document.getElementById("contentImage").querySelector("img").src =
+      "../media/gifs/loading_img.gif";
+    clickText.textContent = "Loading...";
+    clickText.classList.remove("clickTextAnim1");
+    clickText.classList.add("clickTextAnim2");
+  };
+
   const loadedBtnVisuals = () => {
     document.getElementById("randomPickerBtn").removeAttribute("disabled");
     document.getElementById("contentLoadBtn").textContent = "All Loaded ✅";
     document.getElementById("contentLoadBtn").setAttribute("disabled", "");
+    document.querySelector(".selectDiv").classList.remove("hidden");
+    document.querySelector(".sliderRow").classList.remove("hidden");
+    document.querySelector(".clickText").setAttribute("hidden", "");
+  };
+
+  const emptyContentVisuals = () => {
+    document.querySelector(".contentContainer").setAttribute("hidden", "");
+    document.querySelector(".emptyContent").removeAttribute("hidden");
+    document.querySelector(".loadingAnimation").classList.add("hidden");
+    document.getElementById("randomPickerBtn").removeAttribute("disabled");
     document.querySelector(".selectDiv").classList.remove("hidden");
     document.querySelector(".sliderRow").classList.remove("hidden");
     document.querySelector(".clickText").setAttribute("hidden", "");
@@ -147,6 +176,9 @@ document.addEventListener("DOMContentLoaded", function () {
       .getElementById("contentLoadBtn")
       .addEventListener("click", function () {
         questionContainer.setAttribute("hidden", "");
+        contentContainer.setAttribute("hidden", "");
+        loadingBtnVisuals();
+        chrome.storage.sync.remove(["content", "buttonStates"]);
         qmClicked = !qmClicked;
         chrome.tabs.query({ active: true, currentWindow: true }, function () {
           chrome.tabs.sendMessage(currentTab.id, {

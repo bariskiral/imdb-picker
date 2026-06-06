@@ -1,5 +1,5 @@
 const regexPattern =
-  /https:\/\/www\.imdb\.com\/(?:user\/(\w+)\/(watchlist|rating)|list\/(\w+))/;
+  /^https:\/\/www\.imdb\.com\/(?:user\/[^/]+\/(?:watchlist|ratings?)|list\/[^/?#]+|watchlist)(?:[/?#]|$)/;
 const regexChromeExtensionsTab = /chrome:\/\/extensions/;
 let currentListID = null;
 
